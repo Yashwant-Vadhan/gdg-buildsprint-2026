@@ -10,6 +10,15 @@ import WalletLog from './pages/committee/WalletLog';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './hooks/useAuth';
 
+import StudentLayout from './components/StudentLayout';
+import Canteen from './pages/student/Canteen';
+import CanteenCheckout from './pages/student/CanteenCheckout';
+import CanteenStatus from './pages/student/CanteenStatus';
+import Store from './pages/student/Store';
+import Laundry from './pages/student/Laundry';
+import Wallet from './pages/student/Wallet';
+import Profile from './pages/student/Profile';
+
 const NAV_BY_ROLE = {
   canteen_admin: [{ to: '/admin/canteen', label: 'Queue / Menu' }, { to: '/admin/payments', label: 'Payments' }],
   store_admin: [{ to: '/admin/store', label: 'Queue / Menu' }, { to: '/admin/payments', label: 'Payments' }],
@@ -24,20 +33,6 @@ const HOME_BY_ROLE = {
   laundry_admin: '/admin/laundry',
   hostel_committee: '/committee/receipts',
 };
-
-// Placeholder until the real student-facing pages (canteen/store/laundry/wallet
-// ordering) are built — not this role's scope, just here so registering as a
-// student doesn't dead-end at a confusing redirect.
-function StudentPlaceholder() {
-  const { profile, signOut } = useAuth();
-  return (
-    <div className="p-6 max-w-sm mx-auto text-center space-y-3">
-      <h1 className="text-xl font-semibold">Welcome, {profile?.name}</h1>
-      <p className="text-gray-500">Student ordering pages are still being built.</p>
-      <button onClick={signOut} className="text-sm text-primary underline">Log out</button>
-    </div>
-  );
-}
 
 function TopNav() {
   const { role, signOut } = useAuth();
@@ -108,8 +103,21 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route
           path="/student"
-          element={<ProtectedRoute allowedRoles={['student']}><StudentPlaceholder /></ProtectedRoute>}
-        />
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <StudentLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="canteen" replace />} />
+          <Route path="canteen" element={<Canteen />} />
+          <Route path="canteen/checkout" element={<CanteenCheckout />} />
+          <Route path="canteen/status/:id" element={<CanteenStatus />} />
+          <Route path="store" element={<Store />} />
+          <Route path="laundry" element={<Laundry />} />
+          <Route path="wallet" element={<Wallet />} />
+          <Route path="profile" element={<Profile />} />
+        </Route>
         <Route path="/" element={<Home />} />
 
         <Route

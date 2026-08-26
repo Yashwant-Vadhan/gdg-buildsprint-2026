@@ -1,7 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-gray-100 text-gray-900;
+/* Service-specific brand color overrides */
+:root {
+  --brand: #E4002B;
+  --brand-hover: #B91C1C;
+  --brand-light: #FEE2E2;
 }
+
+.service-store {
+  --brand: #EA580C;
+  --brand-hover: #C2410C;
+  --brand-light: #FFF7ED;
+}
+
+.service-laundry {
+  --brand: #2563EB;
+  --brand-hover: #1D4ED8;
+  --brand-light: #EFF6FF;
+}
+
+.service-wallet {
+  --brand: #4F46E5;
+  --brand-hover: #4338CA;
+  --brand-light: #EEF2FF;
+}
+
+/* Dark mode base */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background-color: #0f172a;
+}
+
+/* Smooth theme transition */
+*, *::before, *::after {
+  transition-property: background-color, border-color, color;
+  transition-duration: 150ms;
+  transition-timing-function: ease;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+.dark ::-webkit-scrollbar-thumb { background: #334155; }

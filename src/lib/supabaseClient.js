@@ -18,3 +18,6 @@ export const supabase = createClient(
   url || 'https://placeholder.supabase.co',
   anonKey || 'placeholder-anon-key'
 );
+
+export const isMockMode = !isSupabaseConfigured;
+
