@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { LogIn, UserPlus, ShieldAlert, Utensils, Building, KeyRound, Mail, User } from 'lucide-react';
 
 export default function Login() {
   const { login, signup, loading } = useAuth();
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,6 +24,8 @@ export default function Login() {
       const res = await login(email, password);
       if (!res.success) {
         setError(res.error || 'Login failed. Please check your credentials.');
+      } else {
+        navigate('/');
       }
     } else {
       if (!name || !rollNo || (userType === 'hosteller' && (!hostelBlock || !roomNo))) {
@@ -37,6 +41,8 @@ export default function Login() {
       });
       if (!res.success) {
         setError(res.error || 'Failed to create student card.');
+      } else {
+        navigate('/');
       }
     }
   };

@@ -15,12 +15,25 @@
   }
 }
 
-/* Service themes */
+/* Service themes
+   Each block redeclares --color-brand* (not just --theme-color*) because a custom
+   property's var() references resolve at the element where they're DECLARED, not
+   fresh at each element that inherits them. --color-brand: var(--theme-color) at
+   :root computes to invalid once (--theme-color doesn't exist at :root), and that
+   invalid value is what descendants inherit — even ones that define --theme-color
+   themselves. Redeclaring --color-brand locally gives it a fresh, valid resolution
+   right here, which wins the cascade over the inherited :root value regardless of
+   specificity (unlayered beats @layer). This is what made bg-brand/text-brand
+   render fully transparent everywhere despite --theme-color being set correctly. */
 .theme-canteen {
   --theme-color: #dc2626;
   --theme-color-hover: #b91c1c;
   --theme-color-bg: rgba(220, 38, 38, 0.05);
   --theme-color-light: #fee2e2;
+  --color-brand: var(--theme-color);
+  --color-brand-hover: var(--theme-color-hover);
+  --color-brand-bg: var(--theme-color-bg);
+  --color-brand-light: var(--theme-color-light);
 }
 
 .theme-store {
@@ -28,6 +41,10 @@
   --theme-color-hover: #c2410c;
   --theme-color-bg: rgba(234, 88, 12, 0.05);
   --theme-color-light: #ffedd5;
+  --color-brand: var(--theme-color);
+  --color-brand-hover: var(--theme-color-hover);
+  --color-brand-bg: var(--theme-color-bg);
+  --color-brand-light: var(--theme-color-light);
 }
 
 .theme-laundry {
@@ -35,6 +52,10 @@
   --theme-color-hover: #1d4ed8;
   --theme-color-bg: rgba(37, 99, 235, 0.05);
   --theme-color-light: #dbeafe;
+  --color-brand: var(--theme-color);
+  --color-brand-hover: var(--theme-color-hover);
+  --color-brand-bg: var(--theme-color-bg);
+  --color-brand-light: var(--theme-color-light);
 }
 
 .theme-wallet {
@@ -42,6 +63,10 @@
   --theme-color-hover: #4338ca;
   --theme-color-bg: rgba(79, 70, 229, 0.05);
   --theme-color-light: #e0e7ff;
+  --color-brand: var(--theme-color);
+  --color-brand-hover: var(--theme-color-hover);
+  --color-brand-bg: var(--theme-color-bg);
+  --color-brand-light: var(--theme-color-light);
 }
 
 /* Dark theme overrides for light bg classes */
