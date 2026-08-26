@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-brand: var(--theme-color);
+  --color-brand-hover: var(--theme-color-hover);
+  --color-brand-bg: var(--theme-color-bg);
+  --color-brand-light: var(--theme-color-light);
+}
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen font-sans transition-colors duration-300;
+  }
+}
+
+/* Service themes */
+.theme-canteen {
+  --theme-color: #dc2626;
+  --theme-color-hover: #b91c1c;
+  --theme-color-bg: rgba(220, 38, 38, 0.05);
+  --theme-color-light: #fee2e2;
+}
+
+.theme-store {
+  --theme-color: #ea580c;
+  --theme-color-hover: #c2410c;
+  --theme-color-bg: rgba(234, 88, 12, 0.05);
+  --theme-color-light: #ffedd5;
+}
+
+.theme-laundry {
+  --theme-color: #2563eb;
+  --theme-color-hover: #1d4ed8;
+  --theme-color-bg: rgba(37, 99, 235, 0.05);
+  --theme-color-light: #dbeafe;
+}
+
+.theme-wallet {
+  --theme-color: #4f46e5;
+  --theme-color-hover: #4338ca;
+  --theme-color-bg: rgba(79, 70, 229, 0.05);
+  --theme-color-light: #e0e7ff;
+}
+
+/* Dark theme overrides for light bg classes */
+.dark .theme-canteen {
+  --theme-color-bg: rgba(220, 38, 38, 0.15);
+  --theme-color-light: rgba(220, 38, 38, 0.25);
+}
+
+.dark .theme-store {
+  --theme-color-bg: rgba(234, 88, 12, 0.15);
+  --theme-color-light: rgba(234, 88, 12, 0.25);
+}
+
+.dark .theme-laundry {
+  --theme-color-bg: rgba(37, 99, 235, 0.15);
+  --theme-color-light: rgba(37, 99, 235, 0.25);
+}
+
+.dark .theme-wallet {
+  --theme-color-bg: rgba(79, 70, 229, 0.15);
+  --theme-color-light: rgba(79, 70, 229, 0.25);
+}
+
+/* Base structural widgets */
+.glass-panel {
+  @apply bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm p-6 text-slate-800 dark:text-slate-100 transition-colors duration-300;
+}
+
+.glass-card {
+  @apply bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm transition-all duration-300 hover:border-brand/45 hover:shadow-md p-5 text-slate-800 dark:text-slate-200;
+}
+
+/* Horizontal scrollbar styling for category filters */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
