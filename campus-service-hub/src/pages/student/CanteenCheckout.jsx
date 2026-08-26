@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { supabase, isMockMode } from '../../lib/supabaseClient';
+import { isMockMode } from '../../lib/supabaseClient';
+import { payCanteenCart } from '../../services/cashfree/cashfreeClient';
 import { ShoppingBag, ArrowLeft, CreditCard, ShieldCheck, HelpCircle } from 'lucide-react';
 
 export default function CanteenCheckout() {
@@ -113,18 +114,16 @@ export default function CanteenCheckout() {
         return;
       }
 
-      // Live mode checkout
-      if (hasCart) {
-        alert("Processing multi-item payments with Cashfree UPI gateway...");
-        // Call multiple invokes or a batch invoke if support is there
-        navigate('/student/canteen');
-      } else {
-        const { data, error: functionError } = await supabase.functions.invoke('create-cashfree-order', {
-          body: { item_id: item.id, qty, user_id: user.id }
-        });
-        if (functionError) throw new Error(functionError.message);
-        navigate(`/student/canteen/status/live-order-id`);
-      }
+      // Live mode checkout — single item and cart both go through the same path;
+      // create-cashfree-order accepts either shape and normalizes it server-side.
+      const items = hasCart
+        ? cart.map((cItem) => ({ item_id: cItem.item.id, qty: cItem.qty }))
+        : [{ item_id: item.id, qty }];
+
+      // payCanteenCart hands the browser off to Cashfree's hosted checkout — it does not
+      // return normally on success. The user comes back via PaymentReturn.jsx, which is
+      // where the actual order-status navigation happens once the webhook confirms payment.
+      await payCanteenCart({ items, userId: user.id });
 
     } catch (err) {
       console.error('Checkout error:', err);

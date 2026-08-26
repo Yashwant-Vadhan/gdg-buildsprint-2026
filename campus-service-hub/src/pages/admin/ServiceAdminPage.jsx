@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase, isMockMode } from '../../lib/supabaseClient';
 import QRScannerModal from '../../components/QRScannerModal';
-import { QrCode, RefreshCw, AlertCircle, Plus } from 'lucide-react';
+import { QrCode, RefreshCw, AlertCircle, Plus, Trash2 } from 'lucide-react';
 import { DEFAULT_ACCENT } from '../../lib/adminTheme';
 
 const LOW_STOCK_THRESHOLD = 5;
@@ -33,6 +33,7 @@ export default function ServiceAdminPage({ label, itemsTable, ordersTable, statu
   const [scannerOpen, setScannerOpen] = useState(false);
   const [scanBanner, setScanBanner] = useState(null);
   const [scanBusy, setScanBusy] = useState(false);
+  const [removeErrorId, setRemoveErrorId] = useState(null);
   const [, setTick] = useState(0);
 
   const terminalStatus = statusFlow[statusFlow.length - 1];
@@ -96,6 +97,16 @@ export default function ServiceAdminPage({ label, itemsTable, ordersTable, statu
 
   const handleUpdateItem = async (id, field, value) => {
     await supabase.from(itemsTable).update({ [field]: value }).eq('id', id);
+    load();
+  };
+
+  const handleRemoveItem = async (item) => {
+    setRemoveErrorId(null);
+    const { error } = await supabase.from(itemsTable).delete().eq('id', item.id);
+    if (error) {
+      // Postgres 23503 = foreign_key_violation — item has existing orders referencing it
+      setRemoveErrorId(item.id);
+    }
     load();
   };
 
@@ -268,14 +279,27 @@ export default function ServiceAdminPage({ label, itemsTable, ordersTable, statu
                       />
                     </label>
                   </div>
-                  <label className="flex items-center gap-2 text-[11px] font-bold text-slate-500 mt-3">
-                    <input
-                      type="checkbox"
-                      checked={item.is_available}
-                      onChange={(e) => handleUpdateItem(item.id, 'is_available', e.target.checked)}
-                    />
-                    Available
-                  </label>
+                  <div className="flex items-center justify-between mt-3">
+                    <label className="flex items-center gap-2 text-[11px] font-bold text-slate-500">
+                      <input
+                        type="checkbox"
+                        checked={item.is_available}
+                        onChange={(e) => handleUpdateItem(item.id, 'is_available', e.target.checked)}
+                      />
+                      Available
+                    </label>
+                    <button
+                      onClick={() => handleRemoveItem(item)}
+                      className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-red-600 hover:text-red-700 cursor-pointer"
+                    >
+                      <Trash2 className="w-3 h-3" /> Remove
+                    </button>
+                  </div>
+                  {removeErrorId === item.id && (
+                    <p className="text-[10px] font-bold text-red-600 mt-2">
+                      Can't remove — it already has orders. Mark it unavailable instead.
+                    </p>
+                  )}
                 </div>
               );
             })}

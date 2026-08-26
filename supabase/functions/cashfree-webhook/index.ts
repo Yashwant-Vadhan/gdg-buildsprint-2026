@@ -11,16 +11,15 @@ async function verifyHmacSha256(secret: string, data: string, signatureBase64: s
   const encoder = new TextEncoder()
   const keyData = encoder.encode(secret)
   const messageData = encoder.encode(data)
-  
+
   const key = await crypto.subtle.importKey(
-    "raw", 
-    keyData, 
-    { name: "HMAC", hash: "SHA-256" }, 
-    false, 
+    "raw",
+    keyData,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
     ["verify"]
   )
 
-  // Convert base64 signature to Uint8Array
   const binaryString = atob(signatureBase64)
   const signatureBytes = new Uint8Array(binaryString.length)
   for (let i = 0; i < binaryString.length; i++) {
@@ -60,6 +59,9 @@ const handler: ServeHandler = async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    const functionsUrl = Deno.env.get('SUPABASE_FUNCTION_URL')
+      || (supabaseUrl ? `${supabaseUrl}/functions/v1` : '')
+      || 'https://ozfpxfhnzewhfzanhfvd.supabase.co/functions/v1'
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     if (txStatus === 'SUCCESS') {
@@ -76,34 +78,48 @@ const handler: ServeHandler = async (req) => {
           .eq('id', payment.user_id)
           .single()
 
-        const { data: items } = await supabase
-          .from('canteen_items')
-          .select('id, prep_time_min, price')
-          .limit(1)
+        // cart_items was persisted by create-cashfree-order at order-creation time —
+        // this is the only reliable source of what was actually purchased. Previously
+        // this handler grabbed an arbitrary canteen_items row with `limit 1`, which
+        // created the wrong order for the wrong item every time.
+        const cartItems: Array<{ item_id: string; qty: number; price: number }> = payment.cart_items ?? []
 
-        const item = items?.[0]
-        if (item) {
+        if (cartItems.length === 0) {
+          console.error('cashfree-webhook: payment has no cart_items, cannot create order', orderId)
+        }
+
+        const { count } = await supabase
+          .from('canteen_orders')
+          .select('*', { count: 'exact', head: true })
+          .in('status', ['Received', 'Preparing'])
+        let queuePos = count || 0
+
+        const createdOrderIds: string[] = []
+
+        for (const line of cartItems) {
+          const { data: item } = await supabase
+            .from('canteen_items')
+            .select('id, prep_time_min')
+            .eq('id', line.item_id)
+            .single()
+          if (!item) continue
+
           await supabase.rpc('decrement_stock', {
             p_table: 'canteen_items',
-            p_item_id: item.id,
-            p_qty: 1
+            p_item_id: line.item_id,
+            p_qty: line.qty
           })
 
-          const { count } = await supabase
-            .from('canteen_orders')
-            .select('*', { count: 'exact', head: true })
-            .in('status', ['Received', 'Preparing'])
-
-          const queuePos = count || 0
-          const estReady = new Date(Date.now() + (item.prep_time_min * (queuePos + 1)) * 60000)
+          queuePos += 1
+          const estReady = new Date(Date.now() + item.prep_time_min * queuePos * 60000)
 
           const { data: order } = await supabase
             .from('canteen_orders')
             .insert({
               user_id: payment.user_id,
-              item_id: item.id,
-              qty: 1,
-              amount: payment.amount,
+              item_id: line.item_id,
+              qty: line.qty,
+              amount: line.price * line.qty,
               status: 'Received',
               estimated_ready_at: estReady.toISOString(),
               payment_id: payment.id
@@ -111,13 +127,9 @@ const handler: ServeHandler = async (req) => {
             .select('id')
             .single()
 
-          await supabase
-            .from('payments')
-            .update({ status: 'success', order_ref: order?.id })
-            .eq('id', orderId)
-
           if (order) {
-            await fetch(`${Deno.env.get('SUPABASE_FUNCTION_URL')}/generate-order-qr`, {
+            createdOrderIds.push(order.id)
+            await fetch(`${functionsUrl}/generate-order-qr`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -128,6 +140,11 @@ const handler: ServeHandler = async (req) => {
             })
           }
         }
+
+        await supabase
+          .from('payments')
+          .update({ status: 'success', order_ref: createdOrderIds.join(',') })
+          .eq('id', orderId)
       }
     } else {
       await supabase

@@ -21,7 +21,7 @@ const INITIAL_CANTEEN_MENU = [
   { id: 'c14', name: 'Ice Cream', price: 20.00, quantity_available: 25, prep_time_min: 2, is_available: true, category: 'Ice Cream', image: 'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=500&auto=format&fit=crop' }
 ];
 
-const FALLBACK_FOOD_IMG = "https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=500&auto=format&fit=crop";
+const FALLBACK_FOOD_IMG = "";
 
 export default function Canteen() {
   const { user } = useAuth();

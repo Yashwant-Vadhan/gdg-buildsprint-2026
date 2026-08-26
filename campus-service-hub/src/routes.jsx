@@ -9,6 +9,7 @@ import Login from './pages/Login';
 import Canteen from './pages/student/Canteen';
 import CanteenCheckout from './pages/student/CanteenCheckout';
 import CanteenStatus from './pages/student/CanteenStatus';
+import PaymentReturn from './pages/student/PaymentReturn';
 import Store from './pages/student/Store';
 import Laundry from './pages/student/Laundry';
 import Wallet from './pages/student/Wallet';
@@ -97,6 +98,7 @@ export default function AppRoutes() {
         <Route index element={<Navigate to="canteen" replace />} />
         <Route path="canteen" element={<Canteen />} />
         <Route path="canteen/checkout" element={<CanteenCheckout />} />
+        <Route path="canteen/payment-return" element={<PaymentReturn />} />
         <Route path="canteen/status/:id" element={<CanteenStatus />} />
 
         {/* Hosteller Only Guarded Routes */}

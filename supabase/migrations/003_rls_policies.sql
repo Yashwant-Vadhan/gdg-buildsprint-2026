@@ -29,6 +29,10 @@ create policy "Admins read profiles" on users for select using (get_my_role() in
 -- Wallets policies
 create policy "Hostellers read wallet" on wallets for select using (user_id = auth.uid());
 create policy "Committee read wallets" on wallets for select using (get_my_role() = 'hostel_committee');
+-- Missing from the original migration: signup (useAuth.jsx) inserts a balance=0 wallet
+-- row client-side for new hostellers — with RLS enabled and no INSERT policy this was
+-- rejected outright. Scoped tight: only your own row, only a zero starting balance.
+create policy "Hostellers insert own wallet" on wallets for insert with check (user_id = auth.uid() and balance = 0);
 
 -- Credits policies
 create policy "Students read credits" on wallet_semester_credits for select using (user_id = auth.uid());
@@ -54,6 +58,7 @@ create policy "Admins read payments" on payments for select using (
 create policy "Anyone read canteen items" on canteen_items for select using (auth.uid() is not null);
 create policy "Admin insert canteen items" on canteen_items for insert with check (get_my_role() = 'canteen_admin');
 create policy "Admin update canteen items" on canteen_items for update using (get_my_role() = 'canteen_admin');
+create policy "Admin delete canteen items" on canteen_items for delete using (get_my_role() = 'canteen_admin');
 
 -- Canteen orders policies
 create policy "Students read canteen orders" on canteen_orders for select using (user_id = auth.uid());
@@ -65,6 +70,7 @@ create policy "Admin update canteen orders" on canteen_orders for update using (
 create policy "Hostellers read store items" on store_items for select using (auth.uid() is not null and (get_my_user_type() = 'hosteller' or get_my_role() = 'store_admin'));
 create policy "Admin insert store items" on store_items for insert with check (get_my_role() = 'store_admin');
 create policy "Admin update store items" on store_items for update using (get_my_role() = 'store_admin');
+create policy "Admin delete store items" on store_items for delete using (get_my_role() = 'store_admin');
 
 -- Store orders policies
 create policy "Hostellers read store orders" on store_orders for select using (user_id = auth.uid());
